@@ -3,7 +3,7 @@ version = "0.0.7"
 
 [telegram]
 # Telegram Bot Token from @BotFather
-botToken = "YOUR_BOT_TOKEN_HERE"
+botToken = "8253590042:AAEVjykBKHuh2ust5kA9-MtV29WXcbLT9n8"
 # Enable or disable Telegram bot mode
 enable = true
 # Maximum file size to upload to Telegram (in MB)
