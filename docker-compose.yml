@@ -1,27 +1,149 @@
 version: '3.8'
 
 services:
-  apple-music-bot:
-    build: .
+  # ===================================
+  # Telegram Bot Service
+  # ===================================
+  telegram-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: apple-music-telegram-bot
+    image: apple-music-bot:latest
+    
+    # Environment variables
     environment:
       - RUN_MODE=bot
+      - TZ=UTC
+      - PYTHONUNBUFFERED=1
+    
+    # Volumes
     volumes:
-      - ./config.toml:/app/config.toml
+      - ./config.toml:/app/config.toml:ro
       - ./downloads:/app/downloads
+      - ./logs:/app/logs
+    
+    # Restart policy
     restart: unless-stopped
-    stdin_open: true
-    tty: true
+    
+    # Resource limits (optional)
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+    
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service=telegram-bot"
+    
+    # Network
+    networks:
+      - app-network
+    
+    # Healthcheck
+    healthcheck:
+      test: ["CMD", "poetry", "run", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
-  # Optional: CLI mode service
-  apple-music-cli:
-    build: .
+  # ===================================
+  # CLI Mode Service (Interactive)
+  # ===================================
+  cli:
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: apple-music-cli
+    image: apple-music-bot:latest
+    
+    # Environment variables
     environment:
       - RUN_MODE=cli
+      - TZ=UTC
+      - PYTHONUNBUFFERED=1
+    
+    # Volumes
     volumes:
-      - ./config.toml:/app/config.toml
+      - ./config.toml:/app/config.toml:ro
       - ./downloads:/app/downloads
-    restart: "no"
+      - ./logs:/app/logs
+    
+    # Interactive mode
     stdin_open: true
     tty: true
+    
+    # Restart policy (no auto-restart for interactive)
+    restart: "no"
+    
+    # Network
+    networks:
+      - app-network
+    
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service=cli"
+
+  # ===================================
+  # Alternative: Bot with specific config
+  # ===================================
+  bot-us:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: apple-music-bot-us
+    image: apple-music-bot:latest
+    
+    environment:
+      - RUN_MODE=bot
+      - TZ=America/New_York
+      - PYTHONUNBUFFERED=1
+    
+    volumes:
+      - ./config.toml:/app/config.toml:ro
+      - ./downloads:/app/downloads
+      - ./logs:/app/logs-us
+    
+    restart: unless-stopped
+    
+    networks:
+      - app-network
+    
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service=bot-us"
+    
+    # Only start if explicitly requested
+    profiles:
+      - optional
+
+# Network configuration
+networks:
+  app-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# Volume configuration (optional)
+volumes:
+  downloads:
+    driver: local
+  logs:
+    driver: local
