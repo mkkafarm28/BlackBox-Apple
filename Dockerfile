@@ -49,4 +49,16 @@ RUN set -eux; \
     export PATH="/root/.local/bin:$PATH"; \
     poetry install;
 
-CMD ["poetry", "run", "python", "main.py"]
+# Default: Run CLI mode (original behavior)
+# To run Telegram Bot mode, override CMD at runtime
+# CMD ["poetry", "run", "python", "main.py"]
+
+# Support both CLI and Bot modes
+# Use environment variable to select mode
+ENV RUN_MODE=cli
+
+CMD if [ "$RUN_MODE" = "bot" ]; then \
+    poetry run python telegram_main.py; \
+  else \
+    poetry run python main.py; \
+  fi
