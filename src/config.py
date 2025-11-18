@@ -57,8 +57,16 @@ class Metadata(BaseModel):
                                 "record_company", "upc", "isrc", "rtng"]
 
 
+class Telegram(BaseModel):
+    bot_token: str = ""
+    admin_users: list[int] = []
+    max_file_size: int = 2000
+    temp_dir: str = "telegram_downloads"
+
+
 class Config(BaseModel):
     version: str = "0.0.0"
+    telegram: Telegram = Telegram()
     region: Region
     instance: Instance
     localInstance: LocalInstance
