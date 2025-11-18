@@ -7,7 +7,6 @@ COPY . /app
 # Install Poetry
 RUN set -eux; \
     apk add --no-cache curl; \
-    \
     curl -sSL https://install.python-poetry.org | python3 -
 
 ENV PATH="/root/.local/bin:$PATH"
@@ -17,7 +16,6 @@ RUN set -eux; \
     apk add --no-cache git g++ make cmake zlib-dev coreutils; \
     \
     # Build and install GPAC
-    \
     git clone --depth=1 https://github.com/gpac/gpac.git ./build/gpac || exit 1; \
     cd ./build/gpac; \
     ./configure; \
@@ -28,7 +26,6 @@ RUN set -eux; \
     cd /app; \
     \
     # Build and install Bento4
-    \
     git clone --depth=1 https://github.com/axiomatic-systems/Bento4.git ./build/Bento4 || exit 1; \
     mkdir -p ./build/Bento4/cmakebuild; \
     cd ./build/Bento4/cmakebuild; \
@@ -38,27 +35,41 @@ RUN set -eux; \
     cd /app; \
     \
     # Clean up
-    \
     rm -rf ./build; \
     apk del git g++ make cmake zlib-dev coreutils;
 
 # Install Python dependencies
 RUN set -eux; \
     apk add --no-cache ffmpeg; \
-    \
     export PATH="/root/.local/bin:$PATH"; \
     poetry install;
 
-# Default: Run CLI mode (original behavior)
-# To run Telegram Bot mode, override CMD at runtime
-# CMD ["poetry", "run", "python", "main.py"]
+# Create entrypoint script
+RUN mkdir -p /app/entrypoint && cat > /app/entrypoint.sh << 'EOF'
+#!/bin/sh
+set -e
 
-# Support both CLI and Bot modes
-# Use environment variable to select mode
-ENV RUN_MODE=cli
+# Determine run mode
+if [ "$RUN_MODE" = "bot" ]; then
+    echo "🤖 Starting Telegram Bot Mode..."
+    poetry run python telegram_main.py
+elif [ "$RUN_MODE" = "cli" ]; then
+    echo "💻 Starting CLI Mode..."
+    poetry run python main.py
+else
+    echo "⚠️  RUN_MODE not set. Using default CLI mode."
+    poetry run python main.py
+fi
+EOF
 
-CMD if [ "$RUN_MODE" = "bot" ]; then \
-    poetry run python telegram_main.py; \
-  else \
-    poetry run python main.py; \
-  fi
+RUN chmod +x /app/entrypoint.sh
+
+# Default run mode
+ENV RUN_MODE=bot
+
+# Set entrypoint
+ENTRYPOINT ["/app/entrypoint.sh"]
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD poetry run python -c "import sys; sys.exit(0)" || exit 1
