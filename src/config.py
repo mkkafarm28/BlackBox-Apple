@@ -8,6 +8,12 @@ from pydantic import BaseModel
 CONFIG_VERSION = "0.0.7"
 
 
+class Telegram(BaseModel):
+    botToken: str = ""
+    enable: bool = False
+    maxFileSize: int = 50
+
+
 class Instance(BaseModel):
     url: str = "127.0.0.1:8080"
     secure: bool = False
@@ -59,6 +65,7 @@ class Metadata(BaseModel):
 
 class Config(BaseModel):
     version: str = "0.0.0"
+    telegram: Telegram
     region: Region
     instance: Instance
     localInstance: LocalInstance

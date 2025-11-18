@@ -17,6 +17,7 @@ from src.mp4 import extract_media, extract_song, encapsulate, write_metadata, fi
     check_song_integrity
 from src.save import save
 from src.task import Task, Status
+from src.telegram_integration import send_telegram_file, send_telegram_error
 from src.types import Codec, ParentDoneHandler
 from src.url import Song, Album, URLType, Playlist
 from src.utils import get_codec_from_codec_id, check_song_existence, check_song_exists, if_raw_atmos, \
@@ -81,6 +82,10 @@ async def decrypt_done(adam_id: str):
 
     filename = await run_sync(save, song, codec, task.metadata, task.playlist)
     task.logger.saved()
+
+    # Send file to Telegram if enabled
+    if it(Config).telegram.enable:
+        safely_create_task(send_telegram_file(task.adamId, str(filename), task.metadata))
 
     await task_done(task, Status.DONE)
 

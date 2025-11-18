@@ -4,7 +4,20 @@ Apple Music decryption tool, inspired by [zhaarey/apple-music-alac-atmos-downloa
 
 Discussion Group: https://t.me/apple_music_alac 
 
+## 🤖 NEW: Telegram Bot Mode
+
+This tool now supports running as a Telegram bot! Users can send Apple Music links directly to your bot and receive downloaded files.
+
+**Quick Start:**
+1. Get a bot token from [@BotFather](https://t.me/BotFather)
+2. Configure `config.toml` with your bot token
+3. Run: `poetry run python telegram_main.py`
+
+See [TELEGRAM_BOT_SETUP.md](TELEGRAM_BOT_SETUP.md) for detailed setup instructions.
+
 # Usage
+
+## CLI Mode (Original)
 
 ```shell
 # Download song/album with default codec (alac)
