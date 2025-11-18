@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  apple-music-bot:
+    build: .
+    container_name: apple-music-telegram-bot
+    environment:
+      - RUN_MODE=bot
+    volumes:
+      - ./config.toml:/app/config.toml
+      - ./downloads:/app/downloads
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+
+  # Optional: CLI mode service
+  apple-music-cli:
+    build: .
+    container_name: apple-music-cli
+    environment:
+      - RUN_MODE=cli
+    volumes:
+      - ./config.toml:/app/config.toml
+      - ./downloads:/app/downloads
+    restart: "no"
+    stdin_open: true
+    tty: true
