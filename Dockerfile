@@ -44,28 +44,14 @@ RUN set -eux; \
     export PATH="/root/.local/bin:$PATH"; \
     poetry install;
 
-# Create entrypoint script
-RUN mkdir -p /app/entrypoint && cat > /app/entrypoint.sh << 'EOF'
-#!/bin/sh
-set -e
-
-# Determine run mode
-if [ "$RUN_MODE" = "bot" ]; then
-    echo "🤖 Starting Telegram Bot Mode..."
-    poetry run python telegram_main.py
-elif [ "$RUN_MODE" = "cli" ]; then
-    echo "💻 Starting CLI Mode..."
-    poetry run python main.py
-else
-    echo "⚠️  RUN_MODE not set. Using default CLI mode."
-    poetry run python main.py
-fi
-EOF
-
-RUN chmod +x /app/entrypoint.sh
+# Copy entrypoint script (already in repo)
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh && \
+    sed -i 's/\r$//' /app/entrypoint.sh
 
 # Default run mode
 ENV RUN_MODE=bot
+ENV PYTHONUNBUFFERED=1
 
 # Set entrypoint
 ENTRYPOINT ["/app/entrypoint.sh"]
