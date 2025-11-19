@@ -12,8 +12,8 @@ max_file_size = 2000
 temp_dir = "telegram_downloads"
 
 [instance]
-url = "127.0.0.1:8080"
-secure = false
+url = "wm.wol.moe"
+secure = true
 
 [localInstance]
 # Use qemu to launch wrapper-manager
